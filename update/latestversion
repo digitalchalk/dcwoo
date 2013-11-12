@@ -1,0 +1,13 @@
+{
+    "new_version": "1.0",
+    "info_page": "https://github.com/digitalchalk/dcwoo",
+    "download_link": "https://github.com/digitalchalk/dcwoo/releases/dcwoo-1.0.zip",
+    "slug": "dcwoo",
+    "requires": "3.0",
+    "tested": "3.7.1",
+    "last_updated": "2013-11-07",
+    "sections": [
+		{"Description": "This is the new version of the DigitalChalk WooCommerce integration plugin"},
+		{"Changelog": "Added auto updating"}        
+    ]
+}
