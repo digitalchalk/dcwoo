@@ -1,7 +1,7 @@
 {
-    "new_version": "1.0",
+    "new_version": "1.0.1",
     "info_page": "https://github.com/digitalchalk/dcwoo",
-    "download_link": "https://github.com/digitalchalk/dcwoo/raw/master/releases/dcwoo-1.0.zip",
+    "download_link": "https://github.com/digitalchalk/dcwoo/raw/master/releases/dcwoo-1.0.1.zip",
     "slug": "dcwoo",
     "requires": "3.0",
     "tested": "3.7.1",
