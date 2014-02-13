@@ -1,13 +1,13 @@
 {
-    "new_version": "1.0.3",
+    "new_version": "1.0.4",
     "info_page": "https://github.com/digitalchalk/dcwoo",
-    "download_link": "https://github.com/digitalchalk/dcwoo/raw/master/releases/dcwoo-1.0.3.zip",
+    "download_link": "https://github.com/digitalchalk/dcwoo/raw/master/releases/dcwoo-1.0.4.zip",
     "slug": "dcwoo",
     "requires": "3.0",
     "tested": "3.7.1",
     "last_updated": "2014-02-13",
     "sections": [
 		{"Description": "This is the new version of the DigitalChalk WooCommerce integration plugin"},
-		{"Changelog": "Changed studentId to userId in APIv5 Calls"}        
+		{"Changelog": "Changed studentId to userId in APIv5 Calls"}
     ]
 }
