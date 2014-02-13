@@ -24,7 +24,7 @@ if (!defined('DCWOO_VERSION_KEY'))
 	define('DCWOO_VERSION_KEY', 'dcwoo_version');
 
 if (!defined('DCWOO_VERSION_NUM'))
-	define('DCWOO_VERSION_NUM', ‘1.0.3’);
+	define('DCWOO_VERSION_NUM', '1.0.3');
 
 add_option(DCWOO_VERSION_KEY, DCWOO_VERSION_NUM);
 add_action('init', 'dcwoo_activate_updater');
