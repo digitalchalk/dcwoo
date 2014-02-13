@@ -66,7 +66,11 @@ function getDCOfferings(pageOffset, filter) {
 					output += '<td>' + offering.id + '</td>';
 					output += '<td>' + offering.title + '</td>';
 
-					output += '<td>' + offering.price.toFixed(2) + '</td>';		
+					if(offering.price) {
+						output += '<td>' + offering.price.toFixed(2) + '</td>';
+					} else {
+						output += '<td>0.00</td>';
+					}		
 								
 					output += '<td>';
 					if(offering.catalogDescription) {
