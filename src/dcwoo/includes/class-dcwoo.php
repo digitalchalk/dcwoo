@@ -146,7 +146,7 @@ if (!class_exists("DCWOO")) {
 			
 					foreach($dcProducts as $dcOfferingId => $wooItem) {
 							
-						$result = $this->makeApiV5Call("/dc/api/v5/registrations", "POST", array('studentId' => $dcUser->id, 'offeringId' => $dcOfferingId));
+						$result = $this->makeApiV5Call("/dc/api/v5/registrations", "POST", array(‘userId' => $dcUser->id, 'offeringId' => $dcOfferingId));
 						if($result['api_result'] == 'success') {
 							$order->add_order_note('Success registering DigitalChalk user ' . $wpUser->user_email . ' to product ' . $wooItem['name']);
 						} else {
@@ -567,7 +567,7 @@ Reserved for future use
 			if(empty($dcUserId)) {
 				return NULL;
 			}
-			$result = $this->makeApiV5Call("/dc/api/v5/offerings", "GET", array('studentId' => $dcUserId ));
+			$result = $this->makeApiV5Call("/dc/api/v5/offerings", "GET", array(‘userId' => $dcUserId ));
 			if($result['api_result'] == 'success') {
 				$offeringIds = array();
 				foreach($result['results'] as $oneOffering) {
