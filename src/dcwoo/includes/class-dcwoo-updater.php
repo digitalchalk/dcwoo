@@ -1,6 +1,6 @@
 <?php
 
-if(!class_exists("dcsoo_updater")) {
+if(!class_exists("dcwoo_updater")) {
 	
 	class dcwoo_updater
 	{
