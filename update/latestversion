@@ -1,13 +1,13 @@
 {
-    "new_version": "1.0.5",
+    "new_version": "1.0.6",
     "info_page": "https://github.com/digitalchalk/dcwoo",
-    "download_link": "https://github.com/digitalchalk/dcwoo/raw/master/releases/dcwoo-1.0.5.zip",
+    "download_link": "https://github.com/digitalchalk/dcwoo/raw/master/releases/dcwoo-1.0.6.zip",
     "slug": "dcwoo",
     "requires": "3.0",
     "tested": "3.8.1",
-    "last_updated": "2014-02-13",
+    "last_updated": "2014-04-23",
     "sections": [
 		{"Description": "This is the DigitalChalk WooCommerce integration plugin"},
-		{"Changelog": "Fixed list offerings if price is zero"}
+		{"Changelog": "Fixed create DC product POST return"}
     ]
 }

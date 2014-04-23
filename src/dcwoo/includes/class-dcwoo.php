@@ -338,7 +338,11 @@ Reserved for future use
 								$offeringUrl = 'https://' . get_option('dcwoo_hostname') . '/dc/student/course/' . $offeringId . '/deliver';
 								add_post_meta($newId, '_purchase_note', 'Your course is located <a href="' . $offeringUrl . '">here</a>.', true);
 								
-								wp_safe_redirect('post.php?post=' . $newId . '&action=edit');
+								
+								
+								$this->display_create_dc_product_success($newId);
+								
+								//wp_safe_redirect('post.php?post=' . $newId . '&action=edit');
 							} else {
 								$this->display_offerings_page();
 							}
@@ -354,6 +358,22 @@ Reserved for future use
 			} else {
 				$this->display_offerings_page();
 			}
+		}
+		
+		function display_create_dc_product_success($newId) {
+			$newEdit = get_admin_url() . 'post.php?post=' . $newId . '&action=edit';
+?>
+<div class="wrap">
+<?php screen_icon( 'options-general' ); ?>
+<h2><?php esc_html_e( 'Success Creating Product', 'dcwoo' ); ?></h2>
+<div>
+	<a href="<?php echo $newEdit ?>">Click here to edit it</a>
+</div>
+<div>
+Your new product is currently in DRAFT mode.  You must publish it before it will be available for purchase.
+</div>
+</div>
+<?php
 		}
 		
 		function display_settings_page() {
