@@ -209,7 +209,7 @@ if (!class_exists("DCWOO")) {
 							$dcUser = $this->getDCUserByEmail($email);
 							if(!empty($dcUser)) {
 								$availableOfferings = $this->getAvailableOfferingsForUserId($dcUser->id);
-								if($availableOfferings != NULL) {   // check specifically for NULL, as the array *might* be empty
+								if(!($availableOfferings === NULL)) {   // check specifically for NULL, as the array *might* be empty.. later note: empty is OK, only === NULL is bad here
 									$okToReg = array_intersect($availableOfferings, $dcProducts);
 									$toRemove = array_diff($dcProducts, $okToReg);
 									if(count($toRemove) > 0) {
