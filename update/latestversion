@@ -1,13 +1,13 @@
 {
-    "new_version": "1.0.7",
+    "new_version": "1.0.8",
     "info_page": "https://github.com/digitalchalk/dcwoo",
-    "download_link": "https://github.com/digitalchalk/dcwoo/raw/master/releases/dcwoo-1.0.7.zip",
+    "download_link": "https://github.com/digitalchalk/dcwoo/raw/master/releases/dcwoo-1.0.8.zip",
     "slug": "dcwoo",
     "requires": "3.0",
-    "tested": "3.9",
-    "last_updated": "2014-04-24",
+    "tested": "3.9.1",
+    "last_updated": "2014-05-13",
     "sections": [
 		{"Description": "This is the DigitalChalk WooCommerce integration plugin"},
-		{"Changelog": "bugfix on one offering only"}
+		{"Changelog": "javascript bug fix on make product"}
     ]
 }

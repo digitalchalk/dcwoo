@@ -15,7 +15,7 @@ function createOffering(selectedOfferingId) {
 	f.appendChild(i);
 	f.submit();
 	
-	return false;
+	//return false;
 }
 function getDCOfferings(pageOffset, filter) {
 
@@ -60,7 +60,8 @@ function getDCOfferings(pageOffset, filter) {
 					var offering = response.results[i];
 					output += '<tr>';
 					
-					output += '<td width="10%"><a href="javascript:void(0);" onclick="createOffering(\'' + offering.id + '\');" class="add-new-h2">Make Product</a>';
+					//output += '<td width="10%"><a href="javascript:void(0);" onclick="createOffering(\'' + offering.id + '\');" class="add-new-h2">Make Product</a>';
+					output += '<td width="10%"><form action="<?php echo admin_url('edit.php?post_type=product&page=add_dc_product')?>" method="POST"><input type="hidden" name="offeringId" value="' + offering.id + '"/><input class="add-new-h2" type="submit" value="Make Product"/></form>';
 					output += '</td>';
 
 					output += '<td>' + offering.id + '</td>';
