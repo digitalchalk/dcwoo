@@ -620,12 +620,8 @@ Your new product is currently in DRAFT mode.  You must publish it before it will
 				
 				$result = array();
 				$result['api_result'] = 'success';
-				usort($offerings, function($a,$b) {
-					if($a->title == $b->title) {
-						return 0;
-					}
-					return ($a->title < $b->title) ? -1 : 1;
-				});
+				$sortfunction = create_function('$a,$b', 'if($a->title == $b->title) {return 0;} else {return ($a->title < $b->title) ? -1 : 1;}');
+				usort($offerings, $sortfunction);
 				$result['results'] = $offerings;
 				return $result;
 				
