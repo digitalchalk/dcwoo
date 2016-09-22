@@ -1,6 +1,10 @@
 DigitalChalk WooCommerce Plugin (dcwoo)
 ========================================
 
+### DISCLAIMER
+
+This plugin is provided AS-IS.  Due to differences and updates to the WooCommerce system, this plugin is not officially supported by DigitalChalk, and should be used only as an example of integration.  Any changes required to this plugin to make it work with your particular installation is your responsibility.  We encourage you to fork this project and modify it to work with your own system.
+
 ### Assumptions
 
 This plugin provides an integration between DigitalChalk and WooCommerce inside a WordPress site.  It is assumed that you have installed WordPress and the WooCommerce plugin prior to installing this plugin.
