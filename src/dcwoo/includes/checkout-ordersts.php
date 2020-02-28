@@ -1,4 +1,33 @@
 <?php
+// Change Order Status By Product Type
+add_action('woocommerce_thankyou', 'enroll_student', 10, 1);
+function enroll_student( $order_id ) {
+    
+    $order = wc_get_order( $order_id );
+    $items = $order->get_items();
+
+    foreach ( $items as $item ) {
+        
+        $product_id = $item->get_product_id();
+        $product = wc_get_product($product_id);
+        $type =  $product->get_type();
+        if($product->is_virtual())
+        {
+            $order->update_status( 'wc-completed' );
+        }
+        elseif($type == "simple")
+        {
+            $order->update_status( 'wc-processing' );
+        }
+        
+       
+    }
+
+
+    
+}
+
+
 add_action('profile_update', 'my_dcprofile_update', 10, 2);
 function my_dcprofile_update($user_id)
 {
