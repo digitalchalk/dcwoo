@@ -229,14 +229,7 @@ function mysite_completed( $order_id ) {
                 $product_id = $item->get_product_id();
                 $product = wc_get_product($product_id);
                 $type =  $product->get_type();
-                if($product->is_virtual())
-                {
-                    $order->update_status( 'wc-completed' );
-                }
-                elseif($type == "simple")
-                {
-                    $order->update_status( 'wc-processing' );
-                }
+                
                 $dcMeta = get_post_meta($item['product_id'], DCWOO_OFFERING_ID_META, true);
                 if (!empty($dcMeta)) {
                     $dcProducts[$dcMeta] = $item;
@@ -258,7 +251,7 @@ function mysite_completed( $order_id ) {
                             $dcUser = $this->getDCUserByEmail($wpUser->user_email);
                             $update_user = $this->dc_user_update_info($order_id,$dcUser->id);
                         } else {
-                            $order->add_order_note("Tried to add user with email '" . $wpUser->user_email . "' to DigitalChalk and failed.  Therefore, no registrations were done from this order. <a href='" . $resolveUrl . "'>Resolve</a>");
+                            $order->add_order_note("Tried to add user with email '" . $wpUser->user_email.json_encode($result['api_result']) . "' to DigitalChalk and failed.  Therefore, no registrations were done from this order. <a href='" . $resolveUrl . "'>Resolve</a>");
                             $processResult = false;
                             //$order_status = 'processing';
                         }
@@ -291,7 +284,7 @@ function mysite_completed( $order_id ) {
                             $dcUser = $this->getDCUserByEmail($order->get_billing_email());
                             $update_user = $this->dc_user_update_info($order_id,$dcUser->id);
                         } else {
-                            $order->add_order_note("Tried to add user with email '" . $order->get_billing_email() . "' to DigitalChalk and failed.  Therefore, no registrations were done from this order. <a href='" . $resolveUrl . "'>Resolve</a>");
+                            $order->add_order_note("Tried to add user with email '" . $order->get_billing_email().json_encode($result['api_result']) . "' to DigitalChalk and failed.  Therefore, no registrations were done from this order. <a href='" . $resolveUrl . "'>Resolve</a>");
                             $processResult = false;
                             //$order_status = 'processing';
                         }
@@ -939,6 +932,15 @@ Your new product is currently in DRAFT mode.  You must publish it before it will
         {
             // These are commented out because if you deactivate the plugin you lose these settings otherwise
             // Although good plugin practice says delete these options, in practice it is very annoying for a DC user
+            //
+            //delete_option('dcwoo_hostname');
+            //delete_option('dcwoo_token');
+        }
+
+    } // end class definition
+} // end if class exists
+
+?>g for a DC user
             //
             //delete_option('dcwoo_hostname');
             //delete_option('dcwoo_token');
