@@ -45,7 +45,7 @@ function dcwoo_activate_updater() {
 $plugin = plugin_basename(__FILE__);
 add_filter("plugin_action_links_$plugin", 'dcwoo_settings_link' );
 
-$GLOBALS['DCWOO'] =& new DCWOO();
+$GLOBALS['DCWOO'] == new DCWOO();
 register_activation_hook( __FILE__, array('DCWOO', 'activate') );
 register_deactivation_hook( __FILE__, array('DCWOO', 'deactivate') );
 

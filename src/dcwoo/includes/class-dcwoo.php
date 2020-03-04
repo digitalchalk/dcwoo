@@ -939,14 +939,4 @@ Your new product is currently in DRAFT mode.  You must publish it before it will
 
     } // end class definition
 } // end if class exists
-
-?>g for a DC user
-            //
-            //delete_option('dcwoo_hostname');
-            //delete_option('dcwoo_token');
-        }
-
-    } // end class definition
-} // end if class exists
-
 ?>
