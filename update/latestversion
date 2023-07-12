@@ -4,8 +4,8 @@
     "download_link": "https://github.com/digitalchalk/dcwoo/raw/master/releases/dcwoo-2.0.1.zip",
     "slug": "dcwoo",
     "requires": "3.0",
-    "tested": "3.9.1",
-    "last_updated": "2020-03-02",
+    "tested": "6.2.2",
+    "last_updated": "2023-07-12",
     "sections": [
 		{"Description": "This is the DigitalChalk WooCommerce integration plugin"},
 		{"Changelog": "merged in pull request"}
