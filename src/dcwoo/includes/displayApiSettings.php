@@ -17,10 +17,10 @@
 					<input 	name="dcwoo_hostname" 
 							type="text" 
 							id="dcwoo_hostname" 
-							value="<?php echo get_option('dcwoo_hostname', 'https://api.digitalchalk.com/dc/api/v5');?>" 
+							value="<?php echo get_option('dcwoo_hostname', 'https://api.digitalchalk.com');?>" 
 							class="large-text" />
 					<p class="description">
-						<?php _e( 'The DigitalChalk API Location <button type="button" id="useDefault" attr-host-url="https://api.digitalchalk.com/dc/api/v5">Use Default</button>', 'dcwoo' ); ?>
+						<?php _e( 'The DigitalChalk API Location <button type="button" id="useDefault" attr-host-url="https://api.digitalchalk.com">Use Default</button>', 'dcwoo' ); ?>
 					</p>
 					<script>
 						(() => {
