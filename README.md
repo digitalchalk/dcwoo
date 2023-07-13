@@ -9,7 +9,7 @@ It is also assumed that you have Administrator level access to your WordPress si
 
 ### Downloading the DCWoo Plugin
 
-Download the latest dcwoo plugin zip file from GitHub.  You can download the latest version of the plugin from this link: https://github.com/digitalchalk/dcwoo/raw/master/releases/dcwoo-2.0.1.zip
+Download the latest dcwoo plugin zip file from GitHub.  You can download the latest version of the plugin from this link: https://github.com/digitalchalk/dcwoo/raw/master/releases/dcwoo-2.0.2.zip
 
 
 ### Installing the Plugin
