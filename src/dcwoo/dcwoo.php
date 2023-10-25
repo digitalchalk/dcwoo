@@ -4,7 +4,7 @@ Plugin Name: DigitalChalk / WooCommerce Integration
 Plugin URI: https://github.com/digitalchalk/dcwoo
 Description: Custom DigitalChalk plugin that integrates offerings with WooCommerce
 Version: 2.0.3
-Author: Bob Robinson (brobinson@digitalchalk.com)
+Author: DigitalChalk (support@digitalchalk.com)
 Author URI: http://www.digitalchalk.com
 License: The MIT License (MIT).  Copyright (c) 2014 DigitalChalk.com
 Text Domain: dcwoo
