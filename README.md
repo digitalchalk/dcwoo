@@ -37,6 +37,4 @@ If there are problems registering the user, but sure to check the notes on the W
 
 ### Packaging the Code For Deployment
 
-Run `./makeRelease` and enter the version you want the release to have.
-
-Once the release is created update this file, and the update/latestversion file to reflect the new version
+Run `./makeRelease` and follow the prompt to enter the version you want the release to have.
