@@ -243,7 +243,16 @@ function mysite_completed( $order_id ) {
                     $dcUser = $this->getDCUserByEmail($wpUser->user_email);
                     if (empty($dcUser)) {
                         // Create user
-                        $result = $this->makeApiV5Call("/dc/api/v5/users", "POST", array('firstName' => $wpUser->first_name, 'lastName' => $wpUser->last_name, 'email' => $order->get_billing_email(), 'password' => '***1UNPARSEABLE2***'));
+                        $result = $this->makeApiV5Call(
+                            "/dc/api/v5/users", 
+                            "POST", 
+                            array(
+                                'firstName' => $wpUser->first_name, 
+                                'lastName' => $wpUser->last_name, 
+                                'email' => $order->get_billing_email(), 
+                                'password' => '***1UNPARSEABLE2***'
+                            )
+                        );
 
                         if ($result['api_result'] == 'success') {
 
@@ -480,6 +489,15 @@ Reserved for future use
                     $response = $this->makeApiV5Call("/dc/api/v5/offerings/" . $offeringId, "GET");
                     if (isset($response) && isset($response['api_result']) && $response['api_result'] == 'success') {
                         $offering = $response['results'][0];
+
+                        if(!isset($offering['catalogDescription']) || $offering['catalogDescription'] == null) {
+                            $offering['catalogDescription'] = '';
+                        }
+
+                        if(!isset($wp_error)) {
+                            $wp_error = false;
+                        }
+
                         if ($offering) {
                             $newPost = array();
                             $newPost['post_title'] = $offering['title'];
@@ -527,7 +545,6 @@ Reserved for future use
             $newEdit = get_admin_url() . 'post.php?post=' . $newId . '&action=edit';
             ?>
 <div class="wrap">
-<?php screen_icon('options-general');?>
 <h2><?php esc_html_e('Success Creating Product', 'dcwoo');?></h2>
 <div>
 	<a href="<?php echo $newEdit ?>">Click here to edit it</a>

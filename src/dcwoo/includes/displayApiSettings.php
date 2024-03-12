@@ -1,5 +1,4 @@
 <div class="wrap">
-	<?php screen_icon( 'options-general' ); ?>
 	<h2>
 		<?php esc_html_e( 'DigitalChalk Woo Integration Settings', 'dcwoo' ); ?>
 	</h2>

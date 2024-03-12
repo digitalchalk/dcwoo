@@ -16,7 +16,6 @@ function retryOrder() {
 }
 </script>
 <div class="wrap">
-<?php screen_icon( 'options-general' ); ?>
 <h2><?php esc_html_e( 'Resolve Order Issue', 'dcwoo' ); ?></h2>
 <div>
 <p>

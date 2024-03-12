@@ -18,17 +18,20 @@ function createOffering(selectedOfferingId) {
 	//return false;
 }
 function getDCOfferings(pageOffset, filter) {
-
 	var data = {
-			action : 'get_dc_offerings'
+		action : 'get_dc_offerings'
 	};
+
 	if(pageOffset > 0) {
 		data.offset = pageOffset;
 	}
+
 	if(filter) {
 		data.filter = filter;
 	}
+
 	jQuery('#offeringContents').html('Getting offerings...please wait');
+
 	jQuery.post(ajaxurl, data, function(responseData) {
 		var response = JSON.parse(responseData);
 		if(response.api_result == 'failed') {
@@ -71,8 +74,8 @@ function getDCOfferings(pageOffset, filter) {
 						output += '<td>' + offering.price.toFixed(2) + '</td>';
 					} else {
 						output += '<td>0.00</td>';
-					}		
-								
+					}
+
 					output += '<td>';
 					if(offering.catalogDescription) {
 						output += jQuery(offering.catalogDescription).text().substring(0,70);
@@ -117,13 +120,12 @@ function filterOfferings() {
 	return false;
 }
 
-jQuery(function() {	
+jQuery(() => {	
 	getDCOfferings();
 });
 
 </script>
 <div class="wrap">
-<?php screen_icon( 'options-general' ); ?>
 <h2><?php esc_html_e( 'Add DigitalChalk Product', 'dcwoo' ); ?>&nbsp;<a href="javascript:void(0);" onclick="getDCOfferings();" class="add-new-h2">Refresh Offerings</a></h2>
 <div id="offeringFilterContainer">
 
