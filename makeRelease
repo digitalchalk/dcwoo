@@ -8,6 +8,10 @@ echo $currentVersion
 echo "Please enter the new version:"
 read releaseVersion
 
+sed -i '' -e "s/${currentVersion}/${releaseVersion}/g" update/latestversion
+sed -i '' -e "s/${currentVersion}/${releaseVersion}/g" README.md
+sed -i '' -e "s/${currentVersion}/${releaseVersion}/g" src/dcwoo/dcwoo.php
+
 cd src
 
 zip -r ../releases/dcwoo-$releaseVersion.zip dcwoo
@@ -17,9 +21,6 @@ cd ../
 echo "Release created"
 
 ls -la releases | grep .zip | awk '{ print $NF }' | tail -1 
-
-sed -i '' -e "s/${currentVersion}/${releaseVersion}/g" update/latestversion
-sed -i '' -e "s/${currentVersion}/${releaseVersion}/g" README.md
 
 echo "Version updated"
 

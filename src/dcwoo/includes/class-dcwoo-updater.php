@@ -48,7 +48,7 @@ if(!class_exists("dcsoo_updater")) {
 		}
 		
 		public function check_info($false, $action, $arg) {
-			if($arg->slug === $this->slug) {
+			if(!empty($arg->slug) && $arg->slug === $this->slug) {
 				$remote_info = $this->get_remote_info();
 				return $remote_info;
 			}
