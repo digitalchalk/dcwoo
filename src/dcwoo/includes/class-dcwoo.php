@@ -49,12 +49,7 @@ if (!class_exists("DCWOO")) {
         {
 
             add_options_page('DigitalChalk API v5 Settings', 'DigitalChalk - WooCommerce Integration', 'manage_options', 'dcwoo_options', array($this, 'display_settings_page'));
-            // add_submenu_page('woocommerce', 'DigitalChalk v5 Offerings','DigitalChalk v5 Offerings', 'manage_options', 'dcwoo_offerings', array($this, 'display_offerings_page'));
-            //add_menu_page('DigitalChalk v5 Offerings', 'DigitalChalk v5 Offerings', 'manage_options', 'dcwoo_offerings', array($this, 'display_offerings_page'), plugin_dir_url( __FILE__ ) . '/images/icon-courseoffering-med.png', '58.2');
             add_submenu_page('edit.php?post_type=product', 'Add DigitalChalk Product', 'Add DigitalChalk Product', 'manage_options', 'add_dc_product', array($this, 'display_add_dc_product_page'));
-            //woocommerce_product_write_panel_tabs
-            //add_action('woocommerce_product_write_panel_tabs', array($this, 'write_dc_product_panel_tabs'));
-            //add_action('woocommerce_product_write_panels', array($this, 'write_dc_product_panel'));
 
             //  http://codex.wordpress.org/Function_Reference/add_submenu_page
             //  says that options.php hides this submenu from all menus
@@ -71,6 +66,7 @@ if (!class_exists("DCWOO")) {
         public function resolve_order_ajax()
         {
             $order_id = $_REQUEST['order_id'];
+            $this->debug_log("resolve_order_ajax called for order #{$order_id}", 'INFO');
             $order = new WC_Order($order_id);
             $response = array();
             if ($this->process_order($order_id, true)) {
@@ -81,16 +77,18 @@ if (!class_exists("DCWOO")) {
                     $order->update_status('completed');
                 }
                 $response['process_result'] = 'true';
+                $this->debug_log("resolve_order_ajax: order #{$order_id} resolved successfully", 'INFO');
             } else {
                 $order->add_order_note("Retry of processing failed.");
                 $response['process_result'] = 'false';
+                $this->debug_log("resolve_order_ajax: order #{$order_id} resolution FAILED", 'ERROR');
             }
 
             echo json_encode($response);
             die; // required by wp-ajax.. see the wp codex
         }
 
-      
+
 
         public function add_to_cart_validation_filter($valid, $product_id, $quantity)
         {
@@ -115,239 +113,226 @@ if (!class_exists("DCWOO")) {
             return true;
         }
 
+        /**
+         * process_order - NOTE: This function body is commented out and always returns true.
+         * The actual registration logic lives in mysite_completed().
+         * This is called by payment_complete_order_status_filter_step2 and resolve_order_ajax.
+         */
         public function process_order($order_id, $isRetry = false)
         {
             global $woocommerce;
+            $this->debug_log("process_order called for order #{$order_id} (isRetry=" . ($isRetry ? 'true' : 'false') . ") — NOTE: function body is commented out, always returns true", 'WARN');
             $processResult = true;
-            // $resolveUrl = admin_url('options.php?page=resolve_issue&order_id=' . $order_id); // added to order notes
-            // $order = new WC_Order($order_id);
-            // if (!$order) {
-            //     return false;
-            // }
 
-            // // Check if any DC items are present....
-            // $dcProducts = array();
-            // $items = $order->get_items();
-            // foreach ($items as $item) {
-            //     $dcMeta = get_post_meta($item['product_id'], DCWOO_OFFERING_ID_META, true);
-            //     if (!empty($dcMeta)) {
-            //         $dcProducts[$dcMeta] = $item;
-            //     }
-            // }
-
-            // if (count($dcProducts) > 0) {
-            //     if (is_user_logged_in()) {
-
-            //         $wpUser = wp_get_current_user();
-            //         $dcUser = $this->getDCUserByEmail($wpUser->user_email);
-            //         if (empty($dcUser)) {
-            //             // Create user
-            //             $result = $this->makeApiV5Call("/dc/api/v5/users", "POST", array('firstName' => $wpUser->first_name, 'lastName' => $wpUser->last_name, 'email' => $order->get_billing_email(), 'password' => '***1UNPARSEABLE2***'));
-
-            //             if ($result['api_result'] == 'success') {
-
-            //                 $order->add_order_note("Created new DC user with email '" . $wpUser->user_email . "'.");
-            //                 $dcUser = $this->getDCUserByEmail($wpUser->user_email);
-            //                 $update_user = $this->dc_user_update_info($order_id,$dcUser->id);
-            //             } else {
-            //                 $order->add_order_note("Tried to add user with email '" . $wpUser->user_email . "' to DigitalChalk and failed.  Therefore, no registrations were done from this order. <a href='" . $resolveUrl . "'>Resolve</a>");
-            //                 $processResult = false;
-            //                 //$order_status = 'processing';
-            //             }
-            //         }
-            //         if (!empty($dcUser)) {
-
-            //             foreach ($dcProducts as $dcOfferingId => $wooItem) {
-
-            //                 $result = $this->makeApiV5Call("/dc/api/v5/registrations", "POST", array('userId' => $dcUser->id, 'offeringId' => $dcOfferingId));
-            //                 if ($result['api_result'] == 'success') {
-            //                     $order->add_order_note('Success registering DigitalChalk user ' . $wpUser->user_email . ' to product ' . $wooItem['name']);
-            //                     $update_user = $this->dc_user_update_info($order_id,$dcUser->id);
-            //                 } else {
-            //                     $order->add_order_note('Failed to register DigitalChalk user ' . $wpUser->user_email . ' to product ' . $wooItem['name'] . '. <a href="' . $resolveUrl . '">Resolve</a>');
-            //                     $processResult = false;
-            //                     //$order_status = 'processing';
-            //                 }
-
-            //             }
-            //         }
-            //     } else {
-
-            //         $dcUser = $this->getDCUserByEmail($order->get_billing_email());
-            //         if (empty($dcUser)) {
-            //             // Create user
-            //             $result = $this->makeApiV5Call("/dc/api/v5/users", "POST", array('firstName' => $order->get_billing_first_name(), 'lastName' =>$order->get_billing_last_name(), 'email' => $order->get_billing_email(), 'password' => '***1UNPARSEABLE2***'));
-
-            //             if ($result['api_result'] == 'success') {
-            //                 $order->add_order_note("Created new DC user with email '" . $order->get_billing_email() . "'.");
-            //                 $dcUser = $this->getDCUserByEmail($order->get_billing_email());
-            //                 $update_user = $this->dc_user_update_info($order_id,$dcUser->id);
-            //             } else {
-            //                 $order->add_order_note("Tried to add user with email '" . $order->get_billing_email() . "' to DigitalChalk and failed.  Therefore, no registrations were done from this order. <a href='" . $resolveUrl . "'>Resolve</a>");
-            //                 $processResult = false;
-            //                 //$order_status = 'processing';
-            //             }
-            //         }
-            //         if (!empty($dcUser)) {
-
-            //             foreach ($dcProducts as $dcOfferingId => $wooItem) {
-
-            //                 $result = $this->makeApiV5Call("/dc/api/v5/registrations", "POST", array('userId' => $dcUser->id, 'offeringId' => $dcOfferingId));
-            //                 var_dump($result);
-            //                 if ($result['api_result'] == 'success') {
-            //                     $order->add_order_note('Success registering DigitalChalk user ' . $order->get_billing_email() . ' to product ' . $wooItem['name']);
-            //                     $update_user = $this->dc_user_update_info($order_id,$dcUser->id);
-            //                 } else {
-            //                     $order->add_order_note('Failed to register DigitalChalk user ' . $order->get_billing_email() . ' to product ' . $wooItem['name'] . '. <a href="' . $resolveUrl . '">Resolve</a>');
-            //                     $processResult = false;
-            //                     //$order_status = 'processing';
-            //                 }
-
-            //             }
-            //         }
-            //     }
-
-            // }
+            // IMPORTANT: The entire process_order body is commented out.
+            // Registration logic has been moved to mysite_completed().
+            // This function currently does nothing and returns true.
 
             return $processResult;
         }
 
-        // define the woocommerce_order_status_changed callback 
-function mysite_completed( $order_id ) { 
+        /**
+         * Main registration handler — triggered by woocommerce_order_status_completed action.
+         * This is where DC user creation and course registration actually happens.
+         */
+        function mysite_completed( $order_id )
+        {
             global $woocommerce;
+            $this->debug_log("=== mysite_completed START for order #{$order_id} ===", 'INFO');
+
             $processResult = true;
-            $resolveUrl = admin_url('options.php?page=resolve_issue&order_id=' . $order_id); // added to order notes
+            $resolveUrl = admin_url('options.php?page=resolve_issue&order_id=' . $order_id);
+
             $order = new WC_Order($order_id);
             if (!$order) {
+                $this->debug_log("Order #{$order_id}: WC_Order returned falsy — cannot proceed", 'ERROR');
                 return false;
             }
+            $this->debug_log("Order #{$order_id}: Loaded. Status='" . $order->get_status() . "'", 'INFO');
 
-            // Check if any DC items are present....
+            // Check if already processed to avoid double-processing
+            $processedMeta = get_post_meta($order_id, DCWOO_PROCESSED_META, true);
+            if (!empty($processedMeta) && $processedMeta == 'yes') {
+                $this->debug_log("Order #{$order_id}: Already has DCWOO_PROCESSED_META='yes' — skipping", 'WARN');
+                return true;
+            }
+
+            // Collect DC products from order items
             $dcProducts = array();
             $items = $order->get_items();
+            $this->debug_log("Order #{$order_id}: " . count($items) . " line item(s)", 'INFO');
+
             foreach ($items as $item) {
                 $product_id = $item->get_product_id();
                 $product = wc_get_product($product_id);
-                $type =  $product->get_type();
-                
-                $dcMeta = get_post_meta($item['product_id'], DCWOO_OFFERING_ID_META, true);
+
+                if (!$product) {
+                    $this->debug_log("Order #{$order_id}: Could not load WC product for product_id={$product_id} — skipping item", 'ERROR');
+                    continue;
+                }
+
+                $type = $product->get_type();
+                $dcMeta = get_post_meta($product_id, DCWOO_OFFERING_ID_META, true);
+                $this->debug_log("Order #{$order_id}: Item product_id={$product_id}, type={$type}, name='" . $item->get_name() . "', dc_offering_id=" . ($dcMeta ?: '(none)'), 'INFO');
+
                 if (!empty($dcMeta)) {
                     $dcProducts[$dcMeta] = $item;
                 }
             }
 
-            if (count($dcProducts) > 0) {
-                if (is_user_logged_in()) {
+            $this->debug_log("Order #{$order_id}: Found " . count($dcProducts) . " DC product(s)", 'INFO');
 
-                    $wpUser = wp_get_current_user();
-                    $dcUser = $this->getDCUserByEmail($wpUser->user_email);
-                    if (empty($dcUser)) {
-                        // Create user
-                        $result = $this->makeApiV5Call(
-                            "/dc/api/v5/users", 
-                            "POST", 
-                            array(
-                                'firstName' => $wpUser->first_name, 
-                                'lastName' => $wpUser->last_name, 
-                                'email' => $order->get_billing_email(), 
-                                'password' => '***1UNPARSEABLE2***'
-                            )
-                        );
-
-                        if ($result['api_result'] == 'success') {
-
-                            $order->add_order_note("Created new DC user with email '" . $wpUser->user_email . "'.");
-                            $dcUser = $this->getDCUserByEmail($wpUser->user_email);
-                            $update_user = $this->dc_user_update_info($order_id,$dcUser->id);
-                        } else {
-                            $order->add_order_note("Tried to add user with email '" . $wpUser->user_email.json_encode($result['api_result']) . "' to DigitalChalk and failed.  Therefore, no registrations were done from this order. <a href='" . $resolveUrl . "'>Resolve</a>");
-                            $processResult = false;
-                            //$order_status = 'processing';
-                        }
-                    }
-                    if (!empty($dcUser)) {
-
-                        foreach ($dcProducts as $dcOfferingId => $wooItem) {
-
-                            $result = $this->makeApiV5Call("/dc/api/v5/registrations", "POST", array('userId' => $dcUser->id, 'offeringId' => $dcOfferingId));
-                            if ($result['api_result'] == 'success') {
-                                $order->add_order_note('Success registering DigitalChalk user ' . $wpUser->user_email . ' to product ' . $wooItem['name']);
-                                $update_user = $this->dc_user_update_info($order_id,$dcUser->id);
-                            } else {
-                                $order->add_order_note('Failed to register DigitalChalk user ' . $wpUser->user_email . ' to product ' . $wooItem['name'] . '. <a href="' . $resolveUrl . '">Resolve</a>');
-                                $processResult = false;
-                                //$order_status = 'processing';
-                            }
-
-                        }
-                    }
-                } else {
-
-                    $dcUser = $this->getDCUserByEmail($order->get_billing_email());
-                    if (empty($dcUser)) {
-                        // Create user
-                        $result = $this->makeApiV5Call("/dc/api/v5/users", "POST", array('firstName' => $order->get_billing_first_name(), 'lastName' =>$order->get_billing_last_name(), 'email' => $order->get_billing_email(), 'password' => '***1UNPARSEABLE2***'));
-
-                        if ($result['api_result'] == 'success') {
-                            $order->add_order_note("Created new DC user with email '" . $order->get_billing_email() . "'.");
-                            $dcUser = $this->getDCUserByEmail($order->get_billing_email());
-                            $update_user = $this->dc_user_update_info($order_id,$dcUser->id);
-                        } else {
-                            $order->add_order_note("Tried to add user with email '" . $order->get_billing_email().json_encode($result['api_result']) . "' to DigitalChalk and failed.  Therefore, no registrations were done from this order. <a href='" . $resolveUrl . "'>Resolve</a>");
-                            $processResult = false;
-                            //$order_status = 'processing';
-                        }
-                    }
-                    if (!empty($dcUser)) {
-
-                        foreach ($dcProducts as $dcOfferingId => $wooItem) {
-
-                            $result = $this->makeApiV5Call("/dc/api/v5/registrations", "POST", array('userId' => $dcUser->id, 'offeringId' => $dcOfferingId));
-                            var_dump($result);
-                            if ($result['api_result'] == 'success') {
-                                $order->add_order_note('Success registering DigitalChalk user ' . $order->get_billing_email() . ' to product ' . $wooItem['name']);
-                                $update_user = $this->dc_user_update_info($order_id,$dcUser->id);
-                            } else {
-                                $order->add_order_note('Failed to register DigitalChalk user ' . $order->get_billing_email() . ' to product ' . $wooItem['name'] . '. <a href="' . $resolveUrl . '">Resolve</a>');
-                                $processResult = false;
-                                //$order_status = 'processing';
-                            }
-
-                        }
-                    }
-                }
-
+            if (count($dcProducts) == 0) {
+                $this->debug_log("Order #{$order_id}: No DC products — nothing to process", 'INFO');
+                $this->debug_log("=== mysite_completed END for order #{$order_id} (no DC products) ===", 'INFO');
+                return $processResult;
             }
 
+            // Determine user identity
+            $isLoggedIn = is_user_logged_in();
+            $this->debug_log("Order #{$order_id}: is_user_logged_in()=" . ($isLoggedIn ? 'true' : 'false'), 'INFO');
+
+            if ($isLoggedIn) {
+                $wpUser = wp_get_current_user();
+                $emailForLookup = $wpUser->user_email;
+                $firstName = $wpUser->first_name;
+                $lastName = $wpUser->last_name;
+                $this->debug_log("Order #{$order_id}: Logged-in WP user: email='{$emailForLookup}', ID={$wpUser->ID}", 'INFO');
+
+                $billingEmail = $order->get_billing_email();
+                if ($emailForLookup !== $billingEmail) {
+                    $this->debug_log("Order #{$order_id}: WP user email '{$emailForLookup}' DIFFERS from billing email '{$billingEmail}' — using WP user email for DC lookup", 'WARN');
+                }
+            } else {
+                $emailForLookup = $order->get_billing_email();
+                $firstName = $order->get_billing_first_name();
+                $lastName = $order->get_billing_last_name();
+                $this->debug_log("Order #{$order_id}: Guest checkout — billing email='{$emailForLookup}', name='{$firstName} {$lastName}'", 'INFO');
+            }
+
+            if (empty($emailForLookup)) {
+                $this->debug_log("Order #{$order_id}: No email available — cannot look up or create DC user", 'ERROR');
+                $order->add_order_note("DCWOO: No email available for DC user lookup/creation. Cannot process registrations. <a href='" . $resolveUrl . "'>Resolve</a>");
+                $this->debug_log("=== mysite_completed END for order #{$order_id} (FAILED — no email) ===", 'ERROR');
+                return false;
+            }
+
+            // Look up DC user
+            $this->debug_log("Order #{$order_id}: Looking up DC user by email '{$emailForLookup}'", 'INFO');
+            $dcUser = $this->getDCUserByEmail($emailForLookup);
+
+            if (empty($dcUser)) {
+                // Create DC user
+                $this->debug_log("Order #{$order_id}: DC user not found — creating new user (firstName='{$firstName}', lastName='{$lastName}', email='{$order->get_billing_email()}')", 'INFO');
+
+                $result = $this->makeApiV5Call("/dc/api/v5/users", "POST", array(
+                    'firstName' => $firstName,
+                    'lastName' => $lastName,
+                    'email' => $order->get_billing_email(),
+                    'password' => '***1UNPARSEABLE2***'
+                ));
+
+                if ($result['api_result'] == 'success') {
+                    $this->debug_log("Order #{$order_id}: DC user created successfully for '{$emailForLookup}'", 'INFO');
+                    $order->add_order_note("Created new DC user with email '" . $emailForLookup . "'.");
+                    $dcUser = $this->getDCUserByEmail($emailForLookup);
+
+                    if (empty($dcUser)) {
+                        $this->debug_log("Order #{$order_id}: Created DC user but subsequent lookup FAILED for '{$emailForLookup}'", 'ERROR');
+                        $order->add_order_note("DCWOO: Created DC user but could not retrieve it. <a href='" . $resolveUrl . "'>Resolve</a>");
+                        $this->debug_log("=== mysite_completed END for order #{$order_id} (FAILED — post-create lookup) ===", 'ERROR');
+                        return false;
+                    }
+
+                    $dcUserId = is_object($dcUser) ? $dcUser->id : $dcUser['id'];
+                    $this->debug_log("Order #{$order_id}: DC user retrieved after creation. dcUserId={$dcUserId}", 'INFO');
+                    $this->dc_user_update_info($order_id, $dcUserId);
+                } else {
+                    $httpStatus = isset($result['http_status_code']) ? $result['http_status_code'] : 'N/A';
+                    $error = isset($result['error']) ? $result['error'] : 'unknown';
+                    $errorDesc = isset($result['error_description']) ? $result['error_description'] : '';
+                    $fieldErrors = isset($result['fieldErrors']) ? json_encode($result['fieldErrors']) : '';
+                    $errors = isset($result['errors']) ? json_encode($result['errors']) : '';
+
+                    $this->debug_log("Order #{$order_id}: FAILED to create DC user. HTTP={$httpStatus}, error={$error}, desc={$errorDesc}, fieldErrors={$fieldErrors}, errors={$errors}", 'ERROR');
+                    $this->debug_log("Order #{$order_id}: Full create-user API result: " . json_encode($result), 'ERROR');
+
+                    $order->add_order_note("Tried to add user '" . $emailForLookup . "' to DigitalChalk and failed (HTTP {$httpStatus}: {$error}). No registrations done. <a href='" . $resolveUrl . "'>Resolve</a>");
+                    $processResult = false;
+                }
+            } else {
+                $dcUserId = is_object($dcUser) ? $dcUser->id : $dcUser['id'];
+                $this->debug_log("Order #{$order_id}: Found existing DC user. dcUserId={$dcUserId}", 'INFO');
+            }
+
+            // Register DC user for each offering
+            if (!empty($dcUser)) {
+                $dcUserId = is_object($dcUser) ? $dcUser->id : $dcUser['id'];
+
+                foreach ($dcProducts as $dcOfferingId => $wooItem) {
+                    $itemName = is_object($wooItem) && method_exists($wooItem, 'get_name') ? $wooItem->get_name() : (isset($wooItem['name']) ? $wooItem['name'] : 'unknown');
+                    $this->debug_log("Order #{$order_id}: Registering dcUserId={$dcUserId} for offeringId={$dcOfferingId} (product: '{$itemName}')", 'INFO');
+
+                    $result = $this->makeApiV5Call("/dc/api/v5/registrations", "POST", array(
+                        'userId' => $dcUserId,
+                        'offeringId' => $dcOfferingId
+                    ));
+
+                    if ($result['api_result'] == 'success') {
+                        $this->debug_log("Order #{$order_id}: Registration SUCCESS — dcUserId={$dcUserId}, offeringId={$dcOfferingId}", 'INFO');
+                        $order->add_order_note('Success registering DigitalChalk user ' . $emailForLookup . ' to product ' . $itemName);
+                        $this->dc_user_update_info($order_id, $dcUserId);
+                    } else {
+                        $httpStatus = isset($result['http_status_code']) ? $result['http_status_code'] : 'N/A';
+                        $error = isset($result['error']) ? $result['error'] : 'unknown';
+                        $errors = isset($result['errors']) ? json_encode($result['errors']) : '';
+
+                        $this->debug_log("Order #{$order_id}: Registration FAILED — dcUserId={$dcUserId}, offeringId={$dcOfferingId}, HTTP={$httpStatus}, error={$error}, errors={$errors}", 'ERROR');
+                        $this->debug_log("Order #{$order_id}: Full registration API result: " . json_encode($result), 'ERROR');
+
+                        $order->add_order_note('Failed to register DigitalChalk user ' . $emailForLookup . ' to product ' . $itemName . ' (HTTP ' . $httpStatus . '). <a href="' . $resolveUrl . '">Resolve</a>');
+                        $processResult = false;
+                    }
+                }
+            }
+
+            // Mark as processed if all succeeded
+            if ($processResult) {
+                add_post_meta($order_id, DCWOO_PROCESSED_META, 'yes') || update_post_meta($order_id, DCWOO_PROCESSED_META, 'yes');
+                $this->debug_log("Order #{$order_id}: Marked DCWOO_PROCESSED_META='yes'", 'INFO');
+            }
+
+            $this->debug_log("=== mysite_completed END for order #{$order_id} — result=" . ($processResult ? 'SUCCESS' : 'FAILED') . " ===", 'INFO');
             return $processResult;
-
-     
-} 
-         
-
+        }
 
 
         public function payment_complete_order_status_filter_step2($order_status, $order_id)
         {
+            $this->debug_log("payment_complete_order_status_filter_step2 called for order #{$order_id}, incoming status='{$order_status}'", 'INFO');
 
             if ($order_status != 'completed') {
+                $this->debug_log("payment_complete_order_status_filter_step2: order #{$order_id} status is not 'completed' — returning '{$order_status}' unchanged", 'INFO');
                 return $order_status;
             }
 
-           
-
             $processedMeta = get_post_meta($order_id, DCWOO_PROCESSED_META, true);
+            $this->debug_log("payment_complete_order_status_filter_step2: order #{$order_id} DCWOO_PROCESSED_META='" . ($processedMeta ?: '(empty)') . "'", 'INFO');
+
             if (empty($processedMeta) || $processedMeta != 'yes') {
+                $this->debug_log("payment_complete_order_status_filter_step2: order #{$order_id} not yet processed — calling process_order()", 'INFO');
 
                 if ($this->process_order($order_id)) {
-
                     add_post_meta($order_id, DCWOO_PROCESSED_META, 'yes') || update_post_meta($order_id, DCWOO_PROCESSED_META, 'yes');
+                    $this->debug_log("payment_complete_order_status_filter_step2: order #{$order_id} process_order returned true — marked as processed", 'INFO');
                 } else {
                     $order_status = 'processing';
+                    $this->debug_log("payment_complete_order_status_filter_step2: order #{$order_id} process_order returned false — downgrading to 'processing'", 'WARN');
                 }
+            } else {
+                $this->debug_log("payment_complete_order_status_filter_step2: order #{$order_id} already processed — no action needed", 'INFO');
             }
             return $order_status;
-
         }
 
         public function check_cart_items_action()
@@ -405,29 +390,23 @@ function mysite_completed( $order_id ) {
 
         public function payment_complete_order_status_filter($order_status, $order_id)
         {
+            $this->debug_log("payment_complete_order_status_filter called for order #{$order_id}, incoming status='{$order_status}'", 'INFO');
             $order = new WC_Order($order_id);
+            $new_order_status = $order_status; // BUG FIX: initialize to incoming status instead of leaving undefined
+
             if ('processing' == $order_status &&
                 ('on-hold' == $order->status || 'pending' == $order->status || 'failure' == $order->status)) {
 
                 $new_order_status = 'completed';
+                $this->debug_log("payment_complete_order_status_filter: order #{$order_id} qualifies for auto-complete (was '{$order->status}' -> 'processing' -> 'completed')", 'INFO');
 
                 $userId = $order->customer_user;
                 $user = new WP_User($userId);
                 $items = $order->get_items();
                 $productFactory = new WC_Product_Factory();
                 foreach ($items as $item) {
-
                     $product = $productFactory->get_product($item['product_id']);
                     $meta = get_post_meta($item['product_id']);
-
-                    // Does User exist?
-
-                    // If not, create
-                    // If can't, on-hold
-                    // Register user for offering
-                    // If can't on-hold
-                    $foo = 1;
-
                 }
             }
             return $new_order_status;
@@ -440,15 +419,16 @@ function mysite_completed( $order_id ) {
         {
             $order = new WC_Order($order_id);
 
+            $virtual_order = null;
+            $allowCompletion = false;
+
             if ('processing' == $order_status &&
                 ('on-hold' == $order->status || 'pending' == $order->status || 'failure' == $order->status)) {
-
-                $virtual_order = null;
 
                 if (count($order->get_items()) > 0) {
                     foreach ($order->get_items() as $item) {
                         if ('line_item' == $item['type']) {
-                            $product = $order->get_product_from_item($item);
+                            $product = $item->get_product();
                             if (!$product->is_virtual()) {
                                 $virtual_order = false;
                             } else {
@@ -462,6 +442,8 @@ function mysite_completed( $order_id ) {
             if ($virtual_order && $allowCompletion) {
                 return 'completed';
             }
+
+            return $order_status;
         }
 
         public function write_dc_product_panel_tabs()
@@ -469,7 +451,7 @@ function mysite_completed( $order_id ) {
             ?>
 <li class="dc_product_tab advanced_options"><a href="#dc_product_tab"><?php _e('DigitalChalk Product', 'dcwoo');?></a></li>
 <?php
-}
+        }
 
         public function write_dc_product_panel()
         {
@@ -478,7 +460,8 @@ function mysite_completed( $order_id ) {
 Reserved for future use
 </div>
 <?php
-}
+        }
+
 
         public function display_add_dc_product_page()
         {
@@ -489,15 +472,6 @@ Reserved for future use
                     $response = $this->makeApiV5Call("/dc/api/v5/offerings/" . $offeringId, "GET");
                     if (isset($response) && isset($response['api_result']) && $response['api_result'] == 'success') {
                         $offering = $response['results'][0];
-
-                        if(!isset($offering['catalogDescription']) || $offering['catalogDescription'] == null) {
-                            $offering['catalogDescription'] = '';
-                        }
-
-                        if(!isset($wp_error)) {
-                            $wp_error = false;
-                        }
-
                         if ($offering) {
                             $newPost = array();
                             $newPost['post_title'] = $offering['title'];
@@ -505,7 +479,7 @@ Reserved for future use
                             $newPost['post_status'] = 'draft';
                             $newPost['post_author'] = get_current_user_id();
                             $newPost['post_type'] = 'product'; // a woocommerce product type
-                            $newId = wp_insert_post($newPost, $wp_error);
+                            $newId = wp_insert_post($newPost, true);
                             if ($newId > 0) {
                                 if (empty($offering['price'])) {
                                     $offering['price'] = 0;
@@ -522,7 +496,6 @@ Reserved for future use
 
                                 $this->display_create_dc_product_success($newId);
 
-                                //wp_safe_redirect('post.php?post=' . $newId . '&action=edit');
                             } else {
                                 $this->display_offerings_page();
                             }
@@ -545,6 +518,7 @@ Reserved for future use
             $newEdit = get_admin_url() . 'post.php?post=' . $newId . '&action=edit';
             ?>
 <div class="wrap">
+<?php screen_icon('options-general');?>
 <h2><?php esc_html_e('Success Creating Product', 'dcwoo');?></h2>
 <div>
 	<a href="<?php echo $newEdit ?>">Click here to edit it</a>
@@ -554,7 +528,7 @@ Your new product is currently in DRAFT mode.  You must publish it before it will
 </div>
 </div>
 <?php
-}
+        }
 
         public function display_settings_page()
         {
@@ -569,7 +543,6 @@ Your new product is currently in DRAFT mode.  You must publish it before it will
         public function getAvailableOfferingsAjax($offset = 0, $filter = null)
         {
             $dataToSend = array();
-            //$dataToSend['limit'] = 2;  // debug only
             if ($offset > 0) {
                 $dataToSend['offset'] = $offset;
             }
@@ -606,16 +579,16 @@ Your new product is currently in DRAFT mode.  You must publish it before it will
             $token = get_option('dcwoo_token');
             $hostname = get_option('dcwoo_hostname');
             if (!$token) {
-                $this->debug_log("No token is set in the settings.  DC API v5 call failed");
+                $this->debug_log("makeApiV5Call: No token configured — API call to '{$path}' aborted", 'ERROR');
                 return null;
             }
             if (!$hostname) {
-                $this->debug_log("No hostname is set in the settings.  DC API v5 call failed");
+                $this->debug_log("makeApiV5Call: No hostname configured — API call to '{$path}' aborted", 'ERROR');
                 return null;
             }
 
             $url = 'https://' . $hostname . $path;
-            $this->debug_log("Making API v5 call to " . $url);
+            $this->debug_log("makeApiV5Call: {$method} {$url}" . ($dataToSend ? " payload=" . json_encode($dataToSend) : ''), 'INFO');
 
             if (strtoupper($method) == 'GET') {
                 if ($dataToSend) {
@@ -631,13 +604,14 @@ Your new product is currently in DRAFT mode.  You must publish it before it will
                     if ($dataToSend) {
                         $jsonToSend = json_encode($dataToSend);
                         curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonToSend);
+                        $this->debug_log("makeApiV5Call: POST/PUT body: {$jsonToSend}", 'INFO');
                     }
                 }
                 // The following two lines allow self-signed and wildcard SSL certificates
                 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
                 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // since we are separating the headers and body anyway
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
                 curl_setopt($ch, CURLOPT_HTTPHEADER, array(
                     'Content-Type: application/json',
@@ -651,8 +625,11 @@ Your new product is currently in DRAFT mode.  You must publish it before it will
                 $result['api_request_url'] = $url;
 
                 if ($curlResult == false) {
-                    $result['error'] = curl_error($ch);
+                    $curlError = curl_error($ch);
+                    $curlErrno = curl_errno($ch);
+                    $result['error'] = $curlError;
                     $result['api_result'] = 'failed';
+                    $this->debug_log("makeApiV5Call: cURL FAILED for {$method} {$url} — errno={$curlErrno}, error='{$curlError}'", 'ERROR');
                 } else {
                     $header_size = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
                     $headerpart = substr($curlResult, 0, $header_size);
@@ -662,6 +639,11 @@ Your new product is currently in DRAFT mode.  You must publish it before it will
                     if ($body) {
                         try {
                             $bodyJson = json_decode($body);
+
+                            if ($bodyJson === null && json_last_error() !== JSON_ERROR_NONE) {
+                                $this->debug_log("makeApiV5Call: JSON decode FAILED for {$method} {$url} — json_error='" . json_last_error_msg() . "', raw body (first 500 chars): " . substr($body, 0, 500), 'ERROR');
+                            }
+
                             $result['body'] = $bodyJson;
                             if (isset($bodyJson->error)) {
                                 $result['error'] = $bodyJson->error;
@@ -700,7 +682,10 @@ Your new product is currently in DRAFT mode.  You must publish it before it will
                             }
                         } catch (Exception $e) {
                             $result['bodyexception'] = $e;
+                            $this->debug_log("makeApiV5Call: Exception parsing response body for {$method} {$url}: " . $e->getMessage(), 'ERROR');
                         }
+                    } else {
+                        $this->debug_log("makeApiV5Call: Empty response body for {$method} {$url}", 'WARN');
                     }
                 }
 
@@ -731,6 +716,8 @@ Your new product is currently in DRAFT mode.  You must publish it before it will
                         }
                 }
 
+                $this->debug_log("makeApiV5Call: {$method} {$url} — HTTP {$httpStatus}, api_result='{$result['api_result']}'" . (isset($result['error']) ? ", error='{$result['error']}'" : ''), ($result['api_result'] == 'success' ? 'INFO' : 'ERROR'));
+
                 // result vs results
                 if ($result['api_result'] == 'success' && !isset($result['results']) && isset($result['body'])) {
                     $result['results'] = array();
@@ -739,9 +726,10 @@ Your new product is currently in DRAFT mode.  You must publish it before it will
 
                 unset($result['body']);
 
+                curl_close($ch);
                 return $result;
             } catch (Exception $curlEx) {
-                $this->debug_log("An exception occurred during API v5 call: " . $curlEx->getMessage());
+                $this->debug_log("makeApiV5Call: EXCEPTION during {$method} {$url}: " . $curlEx->getMessage(), 'ERROR');
                 $result = array();
                 $result['api_result'] = 'failed';
                 $result['error'] = $curlEx->getMessage();
@@ -749,17 +737,32 @@ Your new product is currently in DRAFT mode.  You must publish it before it will
             }
         }
 
+
         public function getDCUserByEmail($email)
         {
+            $this->debug_log("getDCUserByEmail: Looking up email='{$email}'", 'INFO');
             if (empty($email)) {
+                $this->debug_log("getDCUserByEmail: Empty email provided — returning null", 'WARN');
                 return null;
             }
             $user = null;
             $result = $this->makeApiV5Call("/dc/api/v5/users", "GET", array('email' => $email));
+            if ($result === null) {
+                $this->debug_log("getDCUserByEmail: API call returned null (likely missing token/hostname)", 'ERROR');
+                return null;
+            }
             if ($result['api_result'] == 'success') {
-                if (isset($result['results'])) {
+                if (isset($result['results']) && count($result['results']) > 0) {
                     $user = $result['results'][0];
+                    $userId = is_object($user) ? $user->id : (is_array($user) ? $user['id'] : 'unknown');
+                    $this->debug_log("getDCUserByEmail: Found DC user for '{$email}' — dcUserId={$userId}", 'INFO');
+                } else {
+                    $this->debug_log("getDCUserByEmail: API success but no results for '{$email}' — user does not exist in DC", 'INFO');
                 }
+            } else {
+                $httpStatus = isset($result['http_status_code']) ? $result['http_status_code'] : 'N/A';
+                $error = isset($result['error']) ? $result['error'] : 'unknown';
+                $this->debug_log("getDCUserByEmail: API FAILED for '{$email}' — HTTP={$httpStatus}, error={$error}", 'ERROR');
             }
             return $user;
         }
@@ -769,7 +772,7 @@ Your new product is currently in DRAFT mode.  You must publish it before it will
             if (empty($dcUserId)) {
                 return null;
             }
-            $result = $this->makeApiV5Call("/dc/api/v5/offerings", "GET", array('userId' => $dcUserId));
+            $result = $this->makeApiV5Call("/dc/api/v5/offerings?limit=100", "GET", array('userId' => $dcUserId));
             if ($result['api_result'] == 'success') {
                 $offeringIds = array();
                 foreach ($result['results'] as $oneOffering) {
@@ -784,6 +787,7 @@ Your new product is currently in DRAFT mode.  You must publish it before it will
         // Update User Info
         public function dc_user_update_info($orderid, $dcuser_id)
         {
+            $this->debug_log("dc_user_update_info: Updating user fields for dcUserId={$dcuser_id}, orderId={$orderid}", 'INFO');
             global $woocommerce;
             $token = get_option('dcwoo_token');
             $hostname = get_option('dcwoo_hostname');
@@ -804,39 +808,46 @@ Your new product is currently in DRAFT mode.  You must publish it before it will
 
             $response = curl_exec($curl2);
 
+            if ($response === false) {
+                $this->debug_log("dc_user_update_info: cURL FAILED fetching userfields — " . curl_error($curl2), 'ERROR');
+                curl_close($curl2);
+                return;
+            }
+
             curl_close($curl2);
             $res = json_decode($response, true);
+
+            if (!isset($res['results'])) {
+                $this->debug_log("dc_user_update_info: No 'results' in userfields response — raw response: " . substr($response, 0, 500), 'ERROR');
+                return;
+            }
+
+            $phone = $street1 = $street2 = $state = $pcode = $city = null;
             foreach ($res['results'] as $ufild) {
                 if ($ufild['name'] == "Phone Number") {
                     $phone = $ufild['id'];
                 }
-
                 if ($ufild['name'] == "Street 1") {
                     $street1 = $ufild['id'];
                 }
-
                 if ($ufild['name'] == "Street 2") {
                     $street2 = $ufild['id'];
                 }
-
                 if ($ufild['name'] == "State/Province") {
                     $state = $ufild['id'];
                 }
-
                 if ($ufild['name'] == "Postal Code") {
                     $pcode = $ufild['id'];
                 }
-
                 if ($ufild['name'] == "City") {
                     $city = $ufild['id'];
                 }
-
             }
 
             $cssoid = $dcuser_id;
             $order = wc_get_order($orderid);
             $user_info = array($phone => $order->get_billing_phone(), $street1 => $order->get_billing_address_1(), $street2 => $order->get_billing_address_2(), $state => $order->get_billing_state(), $pcode => $order->get_billing_postcode(), $city => $order->get_billing_city());
-            // update_user_profile($cssoid, $user_info);
+
             $curl3 = curl_init();
 
             curl_setopt_array($curl3, array(
@@ -853,9 +864,14 @@ Your new product is currently in DRAFT mode.  You must publish it before it will
 
             $response = curl_exec($curl3);
 
-            curl_close($curl3);
-            $res = json_decode($response);
+            if ($response === false) {
+                $this->debug_log("dc_user_update_info: cURL FAILED updating userfieldvalues for dcUserId={$dcuser_id} — " . curl_error($curl3), 'ERROR');
+            } else {
+                $httpCode = curl_getinfo($curl3, CURLINFO_HTTP_CODE);
+                $this->debug_log("dc_user_update_info: Updated userfieldvalues for dcUserId={$dcuser_id} — HTTP {$httpCode}", ($httpCode == 204 ? 'INFO' : 'WARN'));
+            }
 
+            curl_close($curl3);
         }
 
         public function getFilteredOfferings($filter = null)
@@ -865,7 +881,7 @@ Your new product is currently in DRAFT mode.  You must publish it before it will
 
                 do {
                     $dataToSend = array();
-                    if ($result['nextOffset']) {
+                    if (isset($result) && isset($result['nextOffset']) && $result['nextOffset']) {
                         $dataToSend['offset'] = $result['nextOffset'];
                     }
                     $result = array(); // clear it out
@@ -896,18 +912,21 @@ Your new product is currently in DRAFT mode.  You must publish it before it will
 
         //----------------------------------------------------------------------------
         //
-        // WORDPRESS MENU ROUTINES
+        // LOGGING
         //
         //----------------------------------------------------------------------------
 
-        public function debug_log($message)
+        public function debug_log($message, $level = 'DEBUG')
         {
-            if (WP_DEBUG === true) {
-                if (is_array($message) || is_object($message)) {
-                    error_log(print_r($message, true));
-                } else {
-                    error_log($message);
-                }
+            // Always log errors; only log INFO/DEBUG/WARN when WP_DEBUG is on
+            if ($level !== 'ERROR' && (!defined('WP_DEBUG') || WP_DEBUG !== true)) {
+                return;
+            }
+            $prefix = '[DCWOO][' . $level . '] ';
+            if (is_array($message) || is_object($message)) {
+                error_log($prefix . print_r($message, true));
+            } else {
+                error_log($prefix . $message);
             }
         }
 
@@ -948,8 +967,6 @@ Your new product is currently in DRAFT mode.  You must publish it before it will
         public static function deactivate()
         {
             // These are commented out because if you deactivate the plugin you lose these settings otherwise
-            // Although good plugin practice says delete these options, in practice it is very annoying for a DC user
-            //
             //delete_option('dcwoo_hostname');
             //delete_option('dcwoo_token');
         }

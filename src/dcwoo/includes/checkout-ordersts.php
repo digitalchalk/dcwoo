@@ -126,7 +126,14 @@ function save_dcuserfiled($user_id, $sscid)
         }
 
         $cssoid = $sscid;
-        $user_info = array($phone => get_user_meta($user_id, 'billing_phone', true), $street1 => get_user_meta($user_id, 'billing_address_1', true), $street2 => get_user_meta($user_id, 'billing_address_2', true), $state => get_user_meta($user_id, 'billing_state', true), $pcode => get_user_meta($user_id, 'billing_postcode', true), $city => get_user_meta($user_id, 'billing_city', true));
+        $user_info = array(
+            $phone => get_user_meta($user_id, 'billing_phone', true), 
+            $street1 => get_user_meta($user_id, 'billing_address_1', true), 
+            $street2 => get_user_meta($user_id, 'billing_address_2', true), 
+            $state => get_user_meta($user_id, 'billing_state', true), 
+            $pcode => get_user_meta($user_id, 'billing_postcode', true), 
+            $city => get_user_meta($user_id, 'billing_city', true)
+        );
         // update_user_profile($cssoid, $user_info);
         $curl3 = curl_init();
 

@@ -9,7 +9,7 @@ It is also assumed that you have Administrator level access to your WordPress si
 
 ### Downloading the DCWoo Plugin
 
-Download the latest dcwoo plugin zip file from GitHub.  You can download the latest version of the plugin from this link: https://github.com/digitalchalk/dcwoo/raw/master/releases/dcwoo-2.0.5.zip
+Download the latest dcwoo plugin zip file from the [GitHub Releases page](https://github.com/digitalchalk/dcwoo/releases/latest).
 
 
 ### Installing the Plugin
@@ -35,6 +35,11 @@ The new product should now be available in your WooCommerce store.  It acts like
 
 If there are problems registering the user, but sure to check the notes on the WooCommerce order (wp-admin > WooCommerce > Orders).
 
-### Packaging the Code For Deployment
+### Creating a Release
 
-Run `./makeRelease` and follow the prompt to enter the version you want the release to have.
+1. Update the version in `src/dcwoo/dcwoo.php` (both the `Version:` header and `DCWOO_VERSION_NUM`)
+2. Commit and push your changes
+3. Tag the commit: `git tag v2.0.6` (using your new version number)
+4. Push the tag: `git push origin v2.0.6`
+
+The GitHub Actions workflow will automatically build the zip, create a GitHub Release, and update the version manifest.
