@@ -1,80 +1,78 @@
 name: Release Plugin
 
 on:
-    push:
-        tags:
-            - "v*"
+  push:
+    tags:
+      - "v*"
 
 permissions:
-    contents: write
+  contents: write
 
 jobs:
-    release:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-            - name: Extract version from tag
-              id: version
-              run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
 
-            - name: Validate version matches plugin header
-              run: |
-                  HEADER_VERSION=$(grep -oP "Version:\s*\K[0-9.]+" src/dcwoo/dcwoo.php)
-                  if [ "$HEADER_VERSION" != "${{ steps.version.outputs.VERSION }}" ]; then
-                    echo "::error::Tag version (${{ steps.version.outputs.VERSION }}) does not match plugin header version ($HEADER_VERSION)"
-                    exit 1
-                  fi
+      - name: Update version in plugin files from tag
+        run: |
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          sed -i "s/^Version: .*/Version: ${VERSION}/" src/dcwoo/dcwoo.php
+          sed -i "s/define('DCWOO_VERSION_NUM', '[^']*')/define('DCWOO_VERSION_NUM', '${VERSION}')/" src/dcwoo/dcwoo.php
 
-            - name: Build plugin zip
-              run: |
-                  mkdir -p build/dcwoo/includes/images
-                  cp src/dcwoo/dcwoo.php build/dcwoo/
-                  cp src/dcwoo/includes/*.php build/dcwoo/includes/
-                  cp src/dcwoo/includes/images/* build/dcwoo/includes/images/
-                  cd build
-                  zip -r ../dcwoo.${{ steps.version.outputs.VERSION }}.zip dcwoo/
+      - name: Build plugin zip
+        run: |
+          mkdir -p build/dcwoo/includes/images
+          cp src/dcwoo/dcwoo.php build/dcwoo/
+          cp src/dcwoo/includes/*.php build/dcwoo/includes/
+          cp src/dcwoo/includes/images/* build/dcwoo/includes/images/
+          cd build
+          zip -r ../dcwoo.${{ steps.version.outputs.VERSION }}.zip dcwoo/
 
-            - name: Get current date
-              id: date
-              run: echo "TODAY=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
+      - name: Get current date
+        id: date
+        run: echo "TODAY=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
 
-            - name: Update latest version manifest
-              run: |
-                  cat > update/latestversion << 'MANIFEST'
-                  {
-                    "new_version": "${{ steps.version.outputs.VERSION }}",
-                    "info_page": "https://github.com/${{ github.repository }}",
-                    "download_link": "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/dcwoo.${{ steps.version.outputs.VERSION }}.zip",
-                    "slug": "dcwoo",
-                    "requires": "5.0",
-                    "tested": "6.6",
-                    "requires_php": "8.0",
-                    "last_updated": "${{ steps.date.outputs.TODAY }}",
-                    "sections": [
-                      {
-                        "Description": "DigitalChalk WooCommerce integration plugin for WordPress. Compatible with PHP 8 and the latest WordPress versions."
-                      },
-                      {
-                        "Changelog": "See https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
-                      }
-                    ]
-                  }
-                  MANIFEST
+      - name: Update latest version manifest
+        run: |
+          cat > update/latestversion << 'MANIFEST'
+          {
+            "new_version": "${{ steps.version.outputs.VERSION }}",
+            "info_page": "https://github.com/${{ github.repository }}",
+            "download_link": "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/dcwoo.${{ steps.version.outputs.VERSION }}.zip",
+            "slug": "dcwoo",
+            "requires": "5.0",
+            "tested": "6.6",
+            "requires_php": "8.0",
+            "last_updated": "${{ steps.date.outputs.TODAY }}",
+            "sections": [
+              {
+                "Description": "DigitalChalk WooCommerce integration plugin for WordPress. Compatible with PHP 8 and the latest WordPress versions."
+              },
+              {
+                "Changelog": "See https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
+              }
+            ]
+          }
+          MANIFEST
 
-            - name: Commit updated manifest
-              run: |
-                  git config user.name "github-actions[bot]"
-                  git config user.email "github-actions[bot]@users.noreply.github.com"
-                  git fetch origin master
-                  git checkout master
-                  git add update/latestversion
-                  git diff --cached --quiet || git commit -m "Update version manifest for ${{ github.ref_name }}"
-                  git push origin master
+      - name: Commit updated version and manifest
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin master
+          git checkout master
+          git add update/latestversion src/dcwoo/dcwoo.php
+          git diff --cached --quiet || git commit -m "Release ${{ github.ref_name }}: update version and manifest"
+          git push origin master
 
-            - name: Create GitHub Release
-              uses: softprops/action-gh-release@v2
-              with:
-                  files: dcwoo.${{ steps.version.outputs.VERSION }}.zip
-                  generate_release_notes: true
-                  name: "v${{ steps.version.outputs.VERSION }}"
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dcwoo.${{ steps.version.outputs.VERSION }}.zip
+          generate_release_notes: true
+          name: "v${{ steps.version.outputs.VERSION }}"

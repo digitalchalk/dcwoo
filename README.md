@@ -39,13 +39,27 @@ If there are problems registering the user, but sure to check the notes on the W
 
 ### Creating a Release
 
-<<<<<<< HEAD
-1. Update the version in `src/dcwoo/dcwoo.php` (both the `Version:` header and `DCWOO_VERSION_NUM`)
-2. Commit and push your changes
-3. Tag the commit: `git tag v2.0.6` (using your new version number)
-4. Push the tag: `git push origin v2.0.6`
+1. Commit and push your changes to `master`
+2. Tag the commit: `git tag v2.0.6` (using your new version number)
+3. Push the tag: `git push origin v2.0.6`
 
-The GitHub Actions workflow will automatically build the zip, create a GitHub Release, and update the version manifest.
-=======
-Run `./makeRelease` and follow the prompt to enter the version you want the release to have.
->>>>>>> 6ca8696e48c377f713e642a6ea8d29fdb92ae30a
+The GitHub Actions workflow will automatically update the version in the plugin files, build the zip, create a GitHub Release, and update the version manifest.
+
+### Create a Test Release
+
+
+### Create a Test Release
+
+To build a local zip for testing without pushing to GitHub, run the `makeRelease` script from the repo root:
+
+```bash
+./makeRelease
+```
+
+The script will:
+1. Show the current highest version from the `releases/` folder
+2. Prompt you for a new version number
+3. Update the version in `update/latestversion`, `README.md`, and `src/dcwoo/dcwoo.php`
+4. Zip the `src/dcwoo/` directory into `releases/dcwoo-<version>.zip`
+
+You can then upload the generated zip to your WordPress site via Plugins > Add New > Upload to test before creating an official release.

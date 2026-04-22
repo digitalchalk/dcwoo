@@ -32,6 +32,8 @@ if (!class_exists("DCWOO")) {
 
             }
             add_action( 'woocommerce_order_status_completed', array($this, 'mysite_completed'),10,2);
+            add_action( 'woocommerce_order_status_processing', array($this, 'mysite_completed'),10,2);
+            add_action( 'woocommerce_order_status_changed', array($this, 'order_status_changed_debug'),10,4);
             // order status change actions (these must be set in both admin and frontend)
             add_filter('woocommerce_payment_complete_order_status', array($this, 'payment_complete_order_status_filter'), 10, 2);
             // Note the filter below is at priority 11... in order to check the one above first (at 10)
@@ -73,7 +75,7 @@ if (!class_exists("DCWOO")) {
                 add_post_meta($order_id, DCWOO_PROCESSED_META, 'yes') || update_post_meta($order_id, DCWOO_PROCESSED_META, 'yes');
 
                 $order->add_order_note("Issue resolution was successful!");
-                if ($order->status != 'completed') {
+                if ($order->get_status() != 'completed') {
                     $order->update_status('completed');
                 }
                 $response['process_result'] = 'true';
@@ -188,27 +190,13 @@ if (!class_exists("DCWOO")) {
                 return $processResult;
             }
 
-            // Determine user identity
-            $isLoggedIn = is_user_logged_in();
-            $this->debug_log("Order #{$order_id}: is_user_logged_in()=" . ($isLoggedIn ? 'true' : 'false'), 'INFO');
-
-            if ($isLoggedIn) {
-                $wpUser = wp_get_current_user();
-                $emailForLookup = $wpUser->user_email;
-                $firstName = $wpUser->first_name;
-                $lastName = $wpUser->last_name;
-                $this->debug_log("Order #{$order_id}: Logged-in WP user: email='{$emailForLookup}', ID={$wpUser->ID}", 'INFO');
-
-                $billingEmail = $order->get_billing_email();
-                if ($emailForLookup !== $billingEmail) {
-                    $this->debug_log("Order #{$order_id}: WP user email '{$emailForLookup}' DIFFERS from billing email '{$billingEmail}' — using WP user email for DC lookup", 'WARN');
-                }
-            } else {
-                $emailForLookup = $order->get_billing_email();
-                $firstName = $order->get_billing_first_name();
-                $lastName = $order->get_billing_last_name();
-                $this->debug_log("Order #{$order_id}: Guest checkout — billing email='{$emailForLookup}', name='{$firstName} {$lastName}'", 'INFO');
-            }
+            // Determine user identity — always use billing email from the order
+            // to avoid issues when admin changes order status from wp-admin
+            // (is_user_logged_in() would return the admin, not the customer)
+            $emailForLookup = $order->get_billing_email();
+            $firstName = $order->get_billing_first_name();
+            $lastName = $order->get_billing_last_name();
+            $this->debug_log("Order #{$order_id}: Using billing email='{$emailForLookup}', name='{$firstName} {$lastName}'", 'INFO');
 
             if (empty($emailForLookup)) {
                 $this->debug_log("Order #{$order_id}: No email available — cannot look up or create DC user", 'ERROR');
@@ -306,6 +294,14 @@ if (!class_exists("DCWOO")) {
             return $processResult;
         }
 
+        /**
+         * Debug hook to trace all order status changes.
+         */
+        public function order_status_changed_debug($order_id, $old_status, $new_status, $order)
+        {
+            $this->debug_log("ORDER STATUS CHANGED: order #{$order_id} from '{$old_status}' to '{$new_status}'", 'INFO');
+        }
+
 
         public function payment_complete_order_status_filter_step2($order_status, $order_id)
         {
@@ -316,22 +312,10 @@ if (!class_exists("DCWOO")) {
                 return $order_status;
             }
 
-            $processedMeta = get_post_meta($order_id, DCWOO_PROCESSED_META, true);
-            $this->debug_log("payment_complete_order_status_filter_step2: order #{$order_id} DCWOO_PROCESSED_META='" . ($processedMeta ?: '(empty)') . "'", 'INFO');
-
-            if (empty($processedMeta) || $processedMeta != 'yes') {
-                $this->debug_log("payment_complete_order_status_filter_step2: order #{$order_id} not yet processed — calling process_order()", 'INFO');
-
-                if ($this->process_order($order_id)) {
-                    add_post_meta($order_id, DCWOO_PROCESSED_META, 'yes') || update_post_meta($order_id, DCWOO_PROCESSED_META, 'yes');
-                    $this->debug_log("payment_complete_order_status_filter_step2: order #{$order_id} process_order returned true — marked as processed", 'INFO');
-                } else {
-                    $order_status = 'processing';
-                    $this->debug_log("payment_complete_order_status_filter_step2: order #{$order_id} process_order returned false — downgrading to 'processing'", 'WARN');
-                }
-            } else {
-                $this->debug_log("payment_complete_order_status_filter_step2: order #{$order_id} already processed — no action needed", 'INFO');
-            }
+            // Just pass through 'completed' status — actual DC registration is handled
+            // by mysite_completed() on the woocommerce_order_status_completed action.
+            // process_order() is a no-op so we should not mark orders as processed here.
+            $this->debug_log("payment_complete_order_status_filter_step2: order #{$order_id} passing through 'completed' — registration will be handled by mysite_completed()", 'INFO');
             return $order_status;
         }
 
@@ -392,15 +376,16 @@ if (!class_exists("DCWOO")) {
         {
             $this->debug_log("payment_complete_order_status_filter called for order #{$order_id}, incoming status='{$order_status}'", 'INFO');
             $order = new WC_Order($order_id);
-            $new_order_status = $order_status; // BUG FIX: initialize to incoming status instead of leaving undefined
+            $new_order_status = $order_status;
+            $current_status = $order->get_status();
 
             if ('processing' == $order_status &&
-                ('on-hold' == $order->status || 'pending' == $order->status || 'failure' == $order->status)) {
+                ('on-hold' == $current_status || 'pending' == $current_status || 'failure' == $current_status)) {
 
                 $new_order_status = 'completed';
-                $this->debug_log("payment_complete_order_status_filter: order #{$order_id} qualifies for auto-complete (was '{$order->status}' -> 'processing' -> 'completed')", 'INFO');
+                $this->debug_log("payment_complete_order_status_filter: order #{$order_id} qualifies for auto-complete (was '{$current_status}' -> 'processing' -> 'completed')", 'INFO');
 
-                $userId = $order->customer_user;
+                $userId = $order->get_customer_id();
                 $user = new WP_User($userId);
                 $items = $order->get_items();
                 $productFactory = new WC_Product_Factory();
@@ -421,9 +406,10 @@ if (!class_exists("DCWOO")) {
 
             $virtual_order = null;
             $allowCompletion = false;
+            $current_status = $order->get_status();
 
             if ('processing' == $order_status &&
-                ('on-hold' == $order->status || 'pending' == $order->status || 'failure' == $order->status)) {
+                ('on-hold' == $current_status || 'pending' == $current_status || 'failure' == $current_status)) {
 
                 if (count($order->get_items()) > 0) {
                     foreach ($order->get_items() as $item) {
@@ -474,21 +460,23 @@ Reserved for future use
                         $offering = $response['results'][0];
                         if ($offering) {
                             $newPost = array();
-                            $newPost['post_title'] = $offering['title'];
-                            $newPost['post_content'] = $offering['catalogDescription'];
+                            $newPost['post_title'] = is_object($offering) ? $offering->title : $offering['title'];
+                            $newPost['post_content'] = is_object($offering) ? ($offering->catalogDescription ?? '') : ($offering['catalogDescription'] ?? '');
                             $newPost['post_status'] = 'draft';
                             $newPost['post_author'] = get_current_user_id();
                             $newPost['post_type'] = 'product'; // a woocommerce product type
                             $newId = wp_insert_post($newPost, true);
-                            if ($newId > 0) {
-                                if (empty($offering['price'])) {
-                                    $offering['price'] = 0;
+                            if (!is_wp_error($newId) && $newId > 0) {
+                                $offeringPrice = is_object($offering) ? ($offering->price ?? 0) : ($offering['price'] ?? 0);
+                                if (empty($offeringPrice)) {
+                                    $offeringPrice = 0;
                                 }
+                                $offeringId_value = is_object($offering) ? $offering->id : $offering['id'];
                                 add_post_meta($newId, '_virtual', 'yes', true) || update_post_meta($newId, '_virtual', 'yes');
                                 add_post_meta($newId, '_sold_individually', 'yes', true) || update_post_meta($newId, '_sold_individually', 'yes');
-                                add_post_meta($newId, '_regular_price', number_format($offering['price'], 2), true) || update_post_meta($newId, '_regular_price', number_format($offering['price'], 2));
-                                add_post_meta($newId, '_price', number_format($offering['price'], 2), true) || update_post_meta($newId, '_price', number_format($offering['price'], 2));
-                                add_post_meta($newId, DCWOO_OFFERING_ID_META, $offering['id'], true) || update_post_meta($newId, DCWOO_OFFERING_ID_META, $offering->id);
+                                add_post_meta($newId, '_regular_price', number_format($offeringPrice, 2), true) || update_post_meta($newId, '_regular_price', number_format($offeringPrice, 2));
+                                add_post_meta($newId, '_price', number_format($offeringPrice, 2), true) || update_post_meta($newId, '_price', number_format($offeringPrice, 2));
+                                add_post_meta($newId, DCWOO_OFFERING_ID_META, $offeringId_value, true) || update_post_meta($newId, DCWOO_OFFERING_ID_META, $offeringId_value);
 
                                 // purchase notes show up on the view order page (after purchase only)
                                 $offeringUrl = 'https://' . get_option('dcwoo_hostname') . '/dc/student/course/' . $offeringId . '/deliver';
@@ -518,7 +506,6 @@ Reserved for future use
             $newEdit = get_admin_url() . 'post.php?post=' . $newId . '&action=edit';
             ?>
 <div class="wrap">
-<?php screen_icon('options-general');?>
 <h2><?php esc_html_e('Success Creating Product', 'dcwoo');?></h2>
 <div>
 	<a href="<?php echo $newEdit ?>">Click here to edit it</a>
@@ -824,22 +811,23 @@ Your new product is currently in DRAFT mode.  You must publish it before it will
 
             $phone = $street1 = $street2 = $state = $pcode = $city = null;
             foreach ($res['results'] as $ufild) {
-                if ($ufild['name'] == "Phone Number") {
+                $fieldName = isset($ufild['name']) ? $ufild['name'] : '';
+                if ($fieldName == "Phone Number") {
                     $phone = $ufild['id'];
                 }
-                if ($ufild['name'] == "Street 1") {
+                if ($fieldName == "Street 1") {
                     $street1 = $ufild['id'];
                 }
-                if ($ufild['name'] == "Street 2") {
+                if ($fieldName == "Street 2") {
                     $street2 = $ufild['id'];
                 }
-                if ($ufild['name'] == "State/Province") {
+                if ($fieldName == "State/Province") {
                     $state = $ufild['id'];
                 }
-                if ($ufild['name'] == "Postal Code") {
+                if ($fieldName == "Postal Code") {
                     $pcode = $ufild['id'];
                 }
-                if ($ufild['name'] == "City") {
+                if ($fieldName == "City") {
                     $city = $ufild['id'];
                 }
             }
@@ -942,7 +930,7 @@ Your new product is currently in DRAFT mode.  You must publish it before it will
             $fields = explode("\r\n", preg_replace('/\x0D\x0A[\x09\x20]+/', ' ', $header));
             foreach ($fields as $field) {
                 if (preg_match('/([^:]+): (.+)/m', $field, $match)) {
-                    $match[1] = preg_replace('/(?<=^|[\x09\x20\x2D])./', 'strtoupper("\0")', strtolower(trim($match[1])));
+                    $match[1] = preg_replace_callback('/(?<=^|[\x09\x20\x2D])./', function($m) { return strtoupper($m[0]); }, strtolower(trim($match[1])));
                     if (isset($retVal[$match[1]])) {
                         $retVal[$match[1]] = array($retVal[$match[1]], $match[2]);
                     } else {
