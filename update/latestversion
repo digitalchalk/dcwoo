@@ -1,13 +1,18 @@
 {
-    "new_version": "2.0.5",
-    "info_page": "https://github.com/digitalchalk/dcwoo",
-    "download_link": "https://github.com/digitalchalk/dcwoo/raw/master/releases/dcwoo-2.0.5.zip",
-    "slug": "dcwoo",
-    "requires": "3.0",
-    "tested": "6.2.2",
-    "last_updated": "2024-04-11",
-    "sections": [
-		{"Description": "This is the DigitalChalk WooCommerce integration plugin"},
-		{"Changelog": "merged in pull request"}
-    ]
+  "new_version": "2.0.6",
+  "info_page": "https://github.com/digitalchalk/dcwoo",
+  "download_link": "https://github.com/digitalchalk/dcwoo/releases/download/v2.0.6/dcwoo.2.0.6.zip",
+  "slug": "dcwoo",
+  "requires": "5.0",
+  "tested": "6.6",
+  "requires_php": "8.0",
+  "last_updated": "2026-04-22",
+  "sections": [
+    {
+      "Description": "DigitalChalk WooCommerce integration plugin for WordPress. Compatible with PHP 8 and the latest WordPress versions."
+    },
+    {
+      "Changelog": "See https://github.com/digitalchalk/dcwoo/releases/tag/v2.0.6"
+    }
+  ]
 }
