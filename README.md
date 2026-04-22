@@ -47,9 +47,6 @@ The GitHub Actions workflow will automatically update the version in the plugin 
 
 ### Create a Test Release
 
-
-### Create a Test Release
-
 To build a local zip for testing without pushing to GitHub, run the `makeRelease` script from the repo root:
 
 ```bash
