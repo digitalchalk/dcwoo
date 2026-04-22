@@ -274,11 +274,12 @@ if (!class_exists("DCWOO")) {
                         $httpStatus = isset($result['http_status_code']) ? $result['http_status_code'] : 'N/A';
                         $error = isset($result['error']) ? $result['error'] : 'unknown';
                         $errors = isset($result['errors']) ? json_encode($result['errors']) : '';
+                        $apiMessage = isset($result['errors']) && is_array($result['errors']) ? implode('; ', $result['errors']) : $error;
 
                         $this->debug_log("Order #{$order_id}: Registration FAILED — dcUserId={$dcUserId}, offeringId={$dcOfferingId}, HTTP={$httpStatus}, error={$error}, errors={$errors}", 'ERROR');
                         $this->debug_log("Order #{$order_id}: Full registration API result: " . json_encode($result), 'ERROR');
 
-                        $order->add_order_note('Failed to register DigitalChalk user ' . $emailForLookup . ' to product ' . $itemName . ' (HTTP ' . $httpStatus . '). <a href="' . $resolveUrl . '">Resolve</a>');
+                        $order->add_order_note('Failed to register DigitalChalk user ' . $emailForLookup . ' to product ' . $itemName . ' (HTTP ' . $httpStatus . ': ' . $apiMessage . '). <a href="' . $resolveUrl . '">Resolve</a>');
                         $processResult = false;
                     }
                 }
