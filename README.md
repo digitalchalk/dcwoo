@@ -1,6 +1,8 @@
 DigitalChalk WooCommerce Plugin (dcwoo)
 ========================================
 
+Note: The DigitalChalk WooCommerce Plugin is not an officially supported plugin by the DigitalChalk development team.  It was written as a starting point for those wanting to extend and experiment with a Wordpress integration for DigitalChalk.  Please feel free to fork and extend and help support it for the future.
+
 ### Assumptions
 
 This plugin provides an integration between DigitalChalk and WooCommerce inside a WordPress site.  It is assumed that you have installed WordPress and the WooCommerce plugin prior to installing this plugin.
@@ -37,9 +39,13 @@ If there are problems registering the user, but sure to check the notes on the W
 
 ### Creating a Release
 
+<<<<<<< HEAD
 1. Update the version in `src/dcwoo/dcwoo.php` (both the `Version:` header and `DCWOO_VERSION_NUM`)
 2. Commit and push your changes
 3. Tag the commit: `git tag v2.0.6` (using your new version number)
 4. Push the tag: `git push origin v2.0.6`
 
 The GitHub Actions workflow will automatically build the zip, create a GitHub Release, and update the version manifest.
+=======
+Run `./makeRelease` and follow the prompt to enter the version you want the release to have.
+>>>>>>> 6ca8696e48c377f713e642a6ea8d29fdb92ae30a
